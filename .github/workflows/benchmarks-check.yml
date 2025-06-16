@@ -38,7 +38,7 @@ jobs:
 
     - name: 'Baseline benchmark reports found'
       run: |
-        echo "Cache restored: ${{ steps.cache.outputs.cache-matched-key }}"
+        echo "Cache restored: ${{ steps.cache.outputs.cache-matched-key != '' }}"
 
     - name: 'Restore .NET Tools'
       run: dotnet tool restore
@@ -74,7 +74,7 @@ jobs:
         echo '------------------'
 
     - name: 'Run benchmarks compare'
-      if: steps.cache.outputs.cache-matched-key == 'true'
+      if: steps.cache.outputs.cache-matched-key != ''
       run: dotnet pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} -f console -f markdown -f json
 
 
@@ -108,7 +108,7 @@ jobs:
         key: ${{ env.CACHE_KEY }}-${{ github.run_number }}
 
     - name: "Upload compare benchmark report"
-      if: steps.cache.outputs.cache-matched-key == 'true'
+      if: steps.cache.outputs.cache-matched-key != ''
       uses: actions/upload-artifact@v4.6.2
       with:
         name: 'benchmark-comparison-report'
@@ -117,7 +117,7 @@ jobs:
 
     - name: "Add compare benchmark report in PR Comment"
       uses: marocchino/sticky-pull-request-comment@v2
-      if: github.event_name == 'pull_request' && steps.cache.outputs.cache-matched-key == 'true'
+      if: github.event_name == 'pull_request' && steps.cache.outputs.cache-matched-key != ''
       with:
         header: compare-benchmark-report
         hide_and_recreate: true
@@ -125,5 +125,5 @@ jobs:
         path: ${{ github.workspace }}/${{ env.DIR_OUTPUT_COMPARE_REPORT }}/benchmark-comparison-report.md
 
     - name: "Publish benchmark report in Summary"
-      if: steps.cache.outputs.cache-matched-key == 'true'
+      if: steps.cache.outputs.cache-matched-key != ''
       run: cat ${{ github.workspace }}/${{ env.DIR_OUTPUT_COMPARE_REPORT }}/benchmark-comparison-report.md > $GITHUB_STEP_SUMMARY

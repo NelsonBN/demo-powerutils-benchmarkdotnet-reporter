@@ -7,6 +7,10 @@ on:
   push:
 
 
+env:
+  PATH_BENCHMARK_PROJECT: 'tests/Demo.Benchmarks/Demo.Benchmarks.csproj'
+
+
 jobs:
 
   benchmark-check:
@@ -28,8 +32,28 @@ jobs:
         path: ${{ github.workspace }}/previous-benchmark-reports
         key: benchmark-reports-cached
 
-    - name: 'List previous benchmark reports'
-      if: always()
+    - name: 'Restore .NET Tools'
+      run: dotnet tool restore
+
+    - name: 'Restore dependencies'
+      run: dotnet restore
+
+    - name: 'Build projects'
+      run: dotnet build -c Release --no-restore ${{ github.workspace }}/${{ env.PATH_BENCHMARK_PROJECT }}
+
+    - name: 'Run benchmarks'
+      run: dotnet run -p ${{ github.workspace }}/${{ env.PATH_BENCHMARK_PROJECT }} -c Release
+
+    - name: 'List benchmark reports'
       run: |
         pwd
-        ls -la ${{ github.workspace }}/previous-benchmark-reports
+        ls -la ${{ github.workspace }}/BenchmarkDotNet.Artifacts
+        echo "-----"
+        ls -la ${{ github.workspace }}/BenchmarkDotNet.Artifacts/results
+
+
+    # - name: 'List previous benchmark reports'
+    #   if: always()
+    #   run: |
+    #     pwd
+    #     ls -la ${{ github.workspace }}/previous-benchmark-reports

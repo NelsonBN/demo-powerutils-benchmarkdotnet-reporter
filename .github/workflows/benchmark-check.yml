@@ -9,6 +9,8 @@ on:
         required: true
         type: string
 
+  push:
+
 
 jobs:
   benchmark-check:

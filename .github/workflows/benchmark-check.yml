@@ -16,7 +16,6 @@ env:
 
 
 jobs:
-
   benchmark-check:
     name: 'Benchmark Check'
     runs-on: 'ubuntu-latest'
@@ -34,7 +33,9 @@ jobs:
       uses: actions/cache/restore@v4
       with:
         path: ${{ github.workspace }}/${{ env.DIR_PREVIOUS_BENCHMARK_REPORTS }}
-        key: ${{ env.CACHE_KEY }}
+        key: ${{ env.CACHE_KEY }}-${{ github.run_number }}
+        restore-keys: |
+          ${{ env.CACHE_KEY }}-
 
     - name: 'Restore .NET Tools'
       run: dotnet tool restore
@@ -70,7 +71,7 @@ jobs:
       if: steps.check_previous_reports.outputs.previous-benchmark-reports-exists == 'true'
       run: dotnet pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_PREVIOUS_BENCHMARK_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_OUTPUT_BENCHMARK_REPORTS }} -f console -f markdown -f json
 
-    - name: 'Save new benchmark reports'
+    - name: 'Save current benchmark reports for next run'
       uses: actions/cache/save@v4
       with:
         path: ${{ github.workspace }}/${{ env.DIR_OUTPUT_BENCHMARK_REPORTS }}

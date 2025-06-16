@@ -20,10 +20,11 @@ jobs:
     - name: 'Cache file'
       uses: actions/cache/restore@v4
       with:
-        path: ${{ github.workspace }}
+        path: ${{ github.workspace }}/test
         key: ${{ env.CACHE_KEY }}
 
     - name: 'Read file'
+      if: always()
       run: |
         echo '------------------------'
         ls -la ${{ github.workspace }}
@@ -40,16 +41,18 @@ jobs:
 # ############################
 
     - name: 'Writer file'
+      if: always()
       run: |
-        mkdir -p ${{ github.workspace }}/test1
-        echo ${{ env.MY_ENV_VAR }} > "${{ github.workspace }}/test1/file1.txt"
+        mkdir -p ${{ github.workspace }}/test
+        echo ${{ env.MY_ENV_VAR }} > "${{ github.workspace }}/test/file.txt"
         pwd
-        ls -la ${{ github.workspace }}/test1
+        ls -la ${{ github.workspace }}/test
         echo "--->"
-        cat ${{ github.workspace }}/test1/file1.txt
+        cat ${{ github.workspace }}/test/file.txt
 
     - name: 'Cache file'
+      if: always()
       uses: actions/cache/save@v4
       with:
-        path: ${{ github.workspace }}/test1
+        path: ${{ github.workspace }}/test
         key: ${{ env.CACHE_KEY }}-${{ github.run_number }}

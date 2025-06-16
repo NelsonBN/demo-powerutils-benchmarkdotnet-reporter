@@ -1,0 +1,138 @@
+name: 'Benchmarks Check'
+
+
+on:
+  workflow_dispatch:
+
+  push:
+
+
+env:
+  PATH_BENCHMARKS_PROJECT: 'tests/Demo.Benchmarks/Demo.Benchmarks.csproj'
+  DIR_BASELINE_REPORTS: 'baseline-benchmarks-reports'
+  DIR_TARGET_REPORTS: 'BenchmarkDotNet.Artifacts/results'
+  DIR_OUTPUT_COMPARE_REPORT: 'BenchmarkReporter'
+  CACHE_KEY: 'baseline-benchmarks-reports'
+
+
+jobs:
+  benchmarks-check:
+    name: 'Benchmarks Check'
+    runs-on: 'ubuntu-latest'
+
+    steps:
+    - name: "Checkout"
+      uses: actions/checkout@v4.2.2
+
+    - name: "Setup .NET"
+      uses: actions/setup-dotnet@v4.3.1
+      with:
+        dotnet-version: '9.x.x'
+
+    - name: 'Restore Baseline benchmark reports'
+      uses: actions/cache/restore@v4
+      id: cache
+      with:
+        path: ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
+        key: ${{ env.CACHE_KEY }}
+
+    - name: 'Baseline benchmark reports found'
+      run: |
+        echo "Cache restored: ${{ steps.cache.outputs.cache-hit }}"
+
+    - name: 'Restore .NET Tools'
+      run: dotnet tool restore
+
+    - name: 'Restore dependencies'
+      run: dotnet restore
+
+    - name: 'Build projects'
+      run: dotnet build -c Release --no-restore ${{ github.workspace }}/${{ env.PATH_BENCHMARKS_PROJECT }}
+
+    - name: 'List previous benchmark reports'
+      run: |
+        echo '------------------'
+        pwd
+        echo "Listing previous benchmark reports:"
+        ls -la ${{ github.workspace }}
+        echo '------------------'
+
+    - name: 'Run benchmarks'
+      run: dotnet run -p ${{ github.workspace }}/${{ env.PATH_BENCHMARKS_PROJECT }} -c Release
+
+    - name: 'List current folder'
+      run: |
+        echo '------------------'
+        pwd
+        echo "Listing current folder:"
+        ls -la ${{ github.workspace }}
+        echo '------------------'
+        echo "Listing inside benchmark reports folder:"
+        ls -la ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }}
+        echo '------------------'
+
+    - name: 'Run benchmarks compare'
+      if: steps.cache.outputs.cache-hit == 'true'
+      run: dotnet pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} -f console -f markdown -f json
+
+
+
+
+
+
+
+
+
+
+    - name: 'Move target reports to baseline'
+      run: |
+        echo '------------------'
+        echo "Moving target reports to baseline reports"
+        ls -la ${{ github.workspace }}
+        echo '------------------'
+        rm -rf ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
+        ls -la ${{ github.workspace }}
+        echo '------------------'
+        mv ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
+        ls -la ${{ github.workspace }}
+        echo '------------------'
+        ls -la ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
+        echo '------------------'
+
+
+
+
+
+
+
+
+
+
+
+
+    - name: 'Save current benchmark reports for next run'
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
+        key: ${{ env.CACHE_KEY }}-${{ github.run_number }}
+
+    - name: "Upload compare benchmark report"
+      if: steps.cache.outputs.cache-hit == 'true'
+      uses: actions/upload-artifact@v4.6.2
+      with:
+        name: 'benchmark-comparison-report'
+        path: ${{ github.workspace }}/${{ env.DIR_OUTPUT_COMPARE_REPORT }}/*
+        if-no-files-found: error
+
+    - name: "Add compare benchmark report in PR Comment"
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request' && steps.cache.outputs.cache-hit == 'true'
+      with:
+        header: compare-benchmark-report
+        hide_and_recreate: true
+        hide_classify: "OUTDATED"
+        path: ${{ github.workspace }}/${{ env.DIR_OUTPUT_COMPARE_REPORT }}/benchmark-comparison-report.md
+
+    - name: "Publish benchmark report in Summary"
+      if: steps.cache.outputs.cache-hit == 'true'
+      run: cat ${{ github.workspace }}/${{ env.DIR_OUTPUT_COMPARE_REPORT }}/benchmark-comparison-report.md > $GITHUB_STEP_SUMMARY

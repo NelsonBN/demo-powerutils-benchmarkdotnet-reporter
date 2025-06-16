@@ -8,7 +8,7 @@ on:
 
 env:
   MY_ENV_VAR: 'my-env-var-1'
-  CACHE_KEY: 'my-cache-key-1'
+  CACHE_KEY: 'my-cache-key-2'
 
 
 jobs:
@@ -20,15 +20,15 @@ jobs:
     - name: 'Cache file'
       uses: actions/cache/restore@v4
       with:
-        path: ${{ github.workspace }}/test1
+        path: ${{ github.workspace }}/test
         key: ${{ env.CACHE_KEY }}
 
     - name: 'Read file'
       run: |
-        cd ${{ github.workspace }}/test1
+        cd ${{ github.workspace }}/test
         pwd
-        ls -la ${{ github.workspace }}/test1
-        cat ${{ github.workspace }}/test1/file1.txt
+        ls -la ${{ github.workspace }}/test
+        cat ${{ github.workspace }}/test/file.txt
 
 # ############################
 

@@ -49,14 +49,13 @@ jobs:
     - name: 'Build projects'
       run: dotnet build -c Release --no-restore ${{ github.workspace }}/${{ env.PATH_BENCHMARKS_PROJECT }}
 
-    - name: 'List previous benchmark reports'
+    - name: 'List baseline benchmark reports'
       run: |
         echo '------------------'
         pwd
-        echo "Listing previous benchmark reports:"
+        echo "Listing baseline benchmark reports:"
         ls -la ${{ github.workspace }}
         echo '------------------'
-        ls -la ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
         echo '------------------'
 
     - name: 'Run benchmarks'

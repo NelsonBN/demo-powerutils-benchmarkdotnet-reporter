@@ -11,7 +11,7 @@ env:
   PATH_BENCHMARKS_PROJECT: 'tests/Demo.Benchmarks/Demo.Benchmarks.csproj'
   DIR_BASELINE_REPORTS: 'baseline-benchmarks-reports'
   DIR_TARGET_REPORTS: 'BenchmarkDotNet.Artifacts/results'
-  DIR_OUTPUT_COMPARE_REPORT: 'BenchmarkReporter'
+  DIR_COMPARE_REPORTS: 'BenchmarkReporter'
   CACHE_KEY: 'baseline-benchmarks-reports'
 
 
@@ -107,12 +107,19 @@ jobs:
         path: ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
         key: ${{ env.CACHE_KEY }}-${{ github.run_number }}
 
+    - name: "Upload new benchmark reports"
+      uses: actions/upload-artifact@v4.6.2
+      with:
+        name: 'benchmark-reports'
+        path: ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}/*
+        if-no-files-found: error
+
     - name: "Upload compare benchmark report"
       if: steps.cache.outputs.cache-matched-key != ''
       uses: actions/upload-artifact@v4.6.2
       with:
-        name: 'benchmark-comparison-report'
-        path: ${{ github.workspace }}/${{ env.DIR_OUTPUT_COMPARE_REPORT }}/*
+        name: 'benchmark-comparison-reports'
+        path: ${{ github.workspace }}/${{ env.DIR_COMPARE_REPORTS }}/*
         if-no-files-found: error
 
     - name: "Add compare benchmark report in PR Comment"
@@ -122,8 +129,8 @@ jobs:
         header: compare-benchmark-report
         hide_and_recreate: true
         hide_classify: "OUTDATED"
-        path: ${{ github.workspace }}/${{ env.DIR_OUTPUT_COMPARE_REPORT }}/benchmark-comparison-report.md
+        path: ${{ github.workspace }}/${{ env.DIR_COMPARE_REPORTS }}/benchmark-comparison-report.md
 
     - name: "Publish benchmark report in Summary"
       if: steps.cache.outputs.cache-matched-key != ''
-      run: cat ${{ github.workspace }}/${{ env.DIR_OUTPUT_COMPARE_REPORT }}/benchmark-comparison-report.md > $GITHUB_STEP_SUMMARY
+      run: cat ${{ github.workspace }}/${{ env.DIR_COMPARE_REPORTS }}/benchmark-comparison-report.md > $GITHUB_STEP_SUMMARY

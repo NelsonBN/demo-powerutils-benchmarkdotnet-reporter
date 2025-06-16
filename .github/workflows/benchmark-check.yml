@@ -56,6 +56,7 @@ jobs:
         else
           echo "No previous benchmark reports found."
           echo "previous-benchmark-reports-exists=false" >> $GITHUB_OUTPUT
+        fi
 
     - name: 'Run benchmarks compare'
       if: steps.check_previous_reports.outputs.previous-benchmark-reports-exists == 'true'

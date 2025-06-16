@@ -74,7 +74,7 @@ jobs:
       uses: actions/cache/save@v4
       with:
         path: ${{ github.workspace }}/${{ env.DIR_OUTPUT_BENCHMARK_REPORTS }}
-        key: ${{ env.CACHE_KEY }}
+        key: ${{ env.CACHE_KEY }}-${{ github.run_number }}
 
     - name: "Upload compare benchmark report"
       if: steps.check_previous_reports.outputs.previous-benchmark-reports-exists == 'true'

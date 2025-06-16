@@ -20,15 +20,22 @@ jobs:
     - name: 'Cache file'
       uses: actions/cache/restore@v4
       with:
-        path: ${{ github.workspace }}/test
+        path: ${{ github.workspace }}
         key: ${{ env.CACHE_KEY }}
 
     - name: 'Read file'
       run: |
+        echo '------------------------'
+        ls -la ${{ github.workspace }}
+        echo '------------------------'
+        ls -la ${{ github.workspace }}/test
+        echo '------------------------'
         cd ${{ github.workspace }}/test
+        echo '------------------------'
         pwd
         ls -la ${{ github.workspace }}/test
         cat ${{ github.workspace }}/test/file.txt
+        echo '------------------------'
 
 # ############################
 

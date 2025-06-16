@@ -45,9 +45,6 @@ jobs:
     - name: 'Build projects'
       run: dotnet build -c Release --no-restore ${{ github.workspace }}/${{ env.PATH_BENCHMARK_PROJECT }}
 
-    - name: 'Run benchmarks'
-      run: dotnet run -p ${{ github.workspace }}/${{ env.PATH_BENCHMARK_PROJECT }} -c Release
-
     - name: 'Check if exists previous benchmark reports'
       id: check_previous_reports
       run: |
@@ -59,11 +56,21 @@ jobs:
           echo "previous-benchmark-reports-exists=false" >> $GITHUB_OUTPUT
         fi
 
+    - name: 'List previous benchmark reports'
+      run: |
+        echo '------------------'
+        echo "Listing previous benchmark reports:"
+        ls -la ${{ github.workspace }}/${{ env.DIR_PREVIOUS_BENCHMARK_REPORTS }}
+        echo '------------------'
+
+    - name: 'Run benchmarks'
+      run: dotnet run -p ${{ github.workspace }}/${{ env.PATH_BENCHMARK_PROJECT }} -c Release
+
     - name: 'Run benchmarks compare'
       if: steps.check_previous_reports.outputs.previous-benchmark-reports-exists == 'true'
       run: dotnet pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_PREVIOUS_BENCHMARK_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_OUTPUT_BENCHMARK_REPORTS }} -f console -f markdown -f json
 
-    - name: 'Save previous benchmark reports'
+    - name: 'Save new benchmark reports'
       uses: actions/cache/save@v4
       with:
         path: ${{ github.workspace }}/${{ env.DIR_OUTPUT_BENCHMARK_REPORTS }}
@@ -73,7 +80,7 @@ jobs:
       if: steps.check_previous_reports.outputs.previous-benchmark-reports-exists == 'true'
       uses: actions/upload-artifact@v4.6.2
       with:
-        name: 'TestResults'
+        name: 'benchmark-comparison-report'
         path: ${{ github.workspace }}/${{ env.DIR_OUTPUT_COMPARE_REPORT }}/*
         if-no-files-found: error
 

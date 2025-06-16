@@ -8,10 +8,6 @@ on:
         description: "Value 1"
         required: true
         type: string
-      value2:
-        description: "Value 2"
-        required: true
-        type: string
 
 
 jobs:

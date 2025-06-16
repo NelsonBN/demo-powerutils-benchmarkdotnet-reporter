@@ -4,14 +4,16 @@ name: 'Benchmark Check'
 on:
   workflow_dispatch:
     inputs:
-      value1:
+      value:
         description: "Value 1"
         required: true
         type: string
-      value2:
-        description: "Value 2"
-        required: true
-        type: string
+
+  push:
+
+
+env:
+  CACHE_KEY: 'cache-benchmark-reports'
 
 
 jobs:
@@ -20,58 +22,31 @@ jobs:
     runs-on: 'ubuntu-latest'
 
     steps:
-    - name: "Cache file 1"
+    - name: "Cache file"
       uses: actions/cache/restore@v4
       with:
-        path: ${{ github.workspace }}/test1
+        path: ${{ github.workspace }}/test
         key: my-cache-key-1
 
-    - name: "Cache file 2"
-      uses: actions/cache/restore@v4
-      with:
-        path: ${{ github.workspace }}/test2
-        key: my-cache-key-2
-
-    - name: "Read file 1"
+    - name: "Read file"
       run: |
-        cd ${{ github.workspace }}/test1
+        cd ${{ github.workspace }}/test
         pwd
-        ls -la ${{ github.workspace }}/test1
-        cat ${{ github.workspace }}/test1/file1.txt
-
-    - name: "Read file 2"
-      run: |
-        cd ${{ github.workspace }}/test2
-        pwd
-        ls -la ${{ github.workspace }}/test2
-        cat ${{ github.workspace }}/test2/file2.txt
+        ls -la ${{ github.workspace }}/test
+        cat ${{ github.workspace }}/test/file.txt
 
 # ############################
 
-    - name: "Writer file 1"
+    - name: "Writer file"
       run: |
-        mkdir -p ${{ github.workspace }}/test1
-        echo ${{ github.event.inputs.value1 }} > "${{ github.workspace }}/test1/file1.txt"
+        mkdir -p ${{ github.workspace }}/test
+        echo ${{ github.event.inputs.value }} > "${{ github.workspace }}/test/file.txt"
         pwd
-        ls -la ${{ github.workspace }}/test1
-        cat ${{ github.workspace }}/test1/file1.txt
+        ls -la ${{ github.workspace }}/test
+        cat ${{ github.workspace }}/test/file.txt
 
-    - name: "Writer file 2"
-      run: |
-        mkdir -p ${{ github.workspace }}/test2
-        echo ${{ github.event.inputs.value2 }} > "${{ github.workspace }}/test2/file2.txt"
-        pwd
-        ls -la ${{ github.workspace }}/test2
-        cat ${{ github.workspace }}/test2/file2.txt
-
-    - name: "Cache file 1"
+    - name: "Cache file"
       uses: actions/cache/save@v4
       with:
-        path: ${{ github.workspace }}/test1
+        path: ${{ github.workspace }}/test
         key: my-cache-key-1-${{ github.run_number }}
-
-    - name: "Cache file 2"
-      uses: actions/cache/save@v4
-      with:
-        path: ${{ github.workspace }}/test2
-        key: my-cache-key-2-${{ github.run_number }}

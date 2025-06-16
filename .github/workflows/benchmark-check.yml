@@ -39,7 +39,8 @@ jobs:
         echo ${{ github.event.inputs.value1 }} > "${{ github.workspace }}/test1/file1.txt"
         pwd
         ls -la ${{ github.workspace }}/test1
-        cat ">>>" . ${{ github.workspace }}/test1/file1.txt
+        cat "--->"
+        cat ${{ github.workspace }}/test1/file1.txt
 
     - name: "Cache file 1"
       uses: actions/cache/save@v4

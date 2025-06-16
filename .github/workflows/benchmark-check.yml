@@ -9,6 +9,9 @@ on:
 
 env:
   PATH_BENCHMARK_PROJECT: 'tests/Demo.Benchmarks/Demo.Benchmarks.csproj'
+  DIR_PREVIOUS_BENCHMARK_REPORTS: 'previous-benchmark-reports'
+  DIR_OUTPUT_BENCHMARK_REPORTS: 'BenchmarkDotNet.Artifacts/results'
+  DIR_OUTPUT_COMPARE_REPORT: 'BenchmarkReporter'
 
 
 jobs:
@@ -29,7 +32,7 @@ jobs:
     - name: 'Restore previous benchmark reports'
       uses: actions/cache/restore@v4
       with:
-        path: ${{ github.workspace }}/previous-benchmark-reports
+        path: ${{ github.workspace }}/${{ env.DIR_PREVIOUS_BENCHMARK_REPORTS }}
         key: benchmark-reports-cached
 
     - name: 'Restore .NET Tools'
@@ -44,12 +47,26 @@ jobs:
     - name: 'Run benchmarks'
       run: dotnet run -p ${{ github.workspace }}/${{ env.PATH_BENCHMARK_PROJECT }} -c Release
 
-    - name: 'List benchmark reports'
+    - name: 'Check if exists previous benchmark reports'
+      id: check_previous_reports
       run: |
-        pwd
-        ls -la ${{ github.workspace }}/BenchmarkDotNet.Artifacts
-        echo "-----"
-        ls -la ${{ github.workspace }}/BenchmarkDotNet.Artifacts/results
+        if [ -d "${{ github.workspace }}/${{ env.DIR_PREVIOUS_BENCHMARK_REPORTS }}" ]; then
+          echo "Previous benchmark reports found."
+          echo "previous-benchmark-reports-exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "No previous benchmark reports found."
+          echo "previous-benchmark-reports-exists=false" >> $GITHUB_OUTPUT
+
+    - name: 'Run benchmarks compare'
+      if: steps.check_previous_reports.outputs.previous-benchmark-reports-exists == 'true'
+      run: dotnet pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_PREVIOUS_BENCHMARK_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_OUTPUT_BENCHMARK_REPORTS }} -f console -f markdown -f json
+
+      # - name: 'List benchmark reports'
+    #   run: |
+    #     pwd
+    #     ls -la ${{ github.workspace }}/BenchmarkDotNet.Artifacts
+    #     echo "-----"
+    #     ls -la ${{ github.workspace }}/BenchmarkDotNet.Artifacts/results
 
 
     # - name: 'List previous benchmark reports'

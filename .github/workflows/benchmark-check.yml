@@ -26,25 +26,12 @@ jobs:
         path: ${{ github.workspace }}/test1
         key: my-cache-key-1
 
-    - name: "Cache file 2"
-      uses: actions/cache/restore@v4
-      with:
-        path: ${{ github.workspace }}/test2
-        key: my-cache-key-2
-
     - name: "Read file 1"
       run: |
         cd ${{ github.workspace }}/test1
         pwd
         ls -la ${{ github.workspace }}/test1
         cat ${{ github.workspace }}/test1/file1.txt
-
-    - name: "Read file 2"
-      run: |
-        cd ${{ github.workspace }}/test2
-        pwd
-        ls -la ${{ github.workspace }}/test2
-        cat ${{ github.workspace }}/test2/file2.txt
 
 # ############################
 
@@ -56,22 +43,8 @@ jobs:
         ls -la ${{ github.workspace }}/test1
         cat ${{ github.workspace }}/test1/file1.txt
 
-    - name: "Writer file 2"
-      run: |
-        mkdir -p ${{ github.workspace }}/test2
-        echo ${{ github.event.inputs.value2 }} > "${{ github.workspace }}/test2/file2.txt"
-        pwd
-        ls -la ${{ github.workspace }}/test2
-        cat ${{ github.workspace }}/test2/file2.txt
-
     - name: "Cache file 1"
       uses: actions/cache/save@v4
       with:
         path: ${{ github.workspace }}/test1
         key: my-cache-key-1-${{ github.run_number }}
-
-    - name: "Cache file 2"
-      uses: actions/cache/save@v4
-      with:
-        path: ${{ github.workspace }}/test2
-        key: my-cache-key-2-${{ github.run_number }}

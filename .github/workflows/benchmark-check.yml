@@ -35,6 +35,8 @@ jobs:
       with:
         path: ${{ github.workspace }}/${{ env.DIR_PREVIOUS_BENCHMARK_REPORTS }}
         key: ${{ env.CACHE_KEY }}
+        restore-keys: |
+          ${{ env.CACHE_KEY }}-
 
     - name: 'Previous benchmark reports found'
       run: |

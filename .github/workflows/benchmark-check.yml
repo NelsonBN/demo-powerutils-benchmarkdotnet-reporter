@@ -31,9 +31,14 @@ jobs:
 
     - name: 'Restore previous benchmark reports'
       uses: actions/cache/restore@v4
+      id: cache
       with:
         path: ${{ github.workspace }}/${{ env.DIR_PREVIOUS_BENCHMARK_REPORTS }}
         key: ${{ env.CACHE_KEY }}
+
+    - name: 'Previous benchmark reports found'
+      run: |
+        echo "Cache hit: ${{ steps.cache.outputs.cache-hit }}"
 
     - name: 'Restore .NET Tools'
       run: dotnet tool restore
@@ -78,7 +83,7 @@ jobs:
         echo '------------------'
 
     - name: 'Run benchmarks compare'
-      if: steps.check_previous_reports.outputs.previous-benchmark-reports-exists == 'true'
+      if: steps.cache.outputs.cache-hit == 'true'
       run: dotnet pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_PREVIOUS_BENCHMARK_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_OUTPUT_BENCHMARK_REPORTS }} -f console -f markdown -f json
 
     - name: 'Save current benchmark reports for next run'
@@ -88,7 +93,7 @@ jobs:
         key: ${{ env.CACHE_KEY }}-${{ github.run_number }}
 
     - name: "Upload compare benchmark report"
-      if: steps.check_previous_reports.outputs.previous-benchmark-reports-exists == 'true'
+      if: steps.cache.outputs.cache-hit == 'true'
       uses: actions/upload-artifact@v4.6.2
       with:
         name: 'benchmark-comparison-report'
@@ -97,7 +102,7 @@ jobs:
 
     - name: "Add compare benchmark report in PR Comment"
       uses: marocchino/sticky-pull-request-comment@v2
-      if: github.event_name == 'pull_request' && steps.check_previous_reports.outputs.previous-benchmark-reports-exists == 'true'
+      if: github.event_name == 'pull_request' && steps.cache.outputs.cache-hit == 'true'
       with:
         header: compare-benchmark-report
         hide_and_recreate: true
@@ -105,5 +110,5 @@ jobs:
         path: ${{ github.workspace }}/${{ env.DIR_OUTPUT_COMPARE_REPORT }}/benchmark-comparison-report.md
 
     - name: "Publish benchmark report in Summary"
-      if: steps.check_previous_reports.outputs.previous-benchmark-reports-exists == 'true'
+      if: steps.cache.outputs.cache-hit == 'true'
       run: cat ${{ github.workspace }}/${{ env.DIR_OUTPUT_COMPARE_REPORT }}/benchmark-comparison-report.md > $GITHUB_STEP_SUMMARY

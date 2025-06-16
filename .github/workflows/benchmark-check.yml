@@ -12,6 +12,7 @@ env:
   DIR_PREVIOUS_BENCHMARK_REPORTS: 'previous-benchmark-reports'
   DIR_OUTPUT_BENCHMARK_REPORTS: 'BenchmarkDotNet.Artifacts/results'
   DIR_OUTPUT_COMPARE_REPORT: 'BenchmarkReporter'
+  CACHE_KEY: 'cache-benchmark-reports'
 
 
 jobs:
@@ -33,7 +34,7 @@ jobs:
       uses: actions/cache/restore@v4
       with:
         path: ${{ github.workspace }}/${{ env.DIR_PREVIOUS_BENCHMARK_REPORTS }}
-        key: benchmark-reports-cached
+        key: ${{ env.CACHE_KEY }}
 
     - name: 'Restore .NET Tools'
       run: dotnet tool restore
@@ -62,16 +63,29 @@ jobs:
       if: steps.check_previous_reports.outputs.previous-benchmark-reports-exists == 'true'
       run: dotnet pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_PREVIOUS_BENCHMARK_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_OUTPUT_BENCHMARK_REPORTS }} -f console -f markdown -f json
 
-      # - name: 'List benchmark reports'
-    #   run: |
-    #     pwd
-    #     ls -la ${{ github.workspace }}/BenchmarkDotNet.Artifacts
-    #     echo "-----"
-    #     ls -la ${{ github.workspace }}/BenchmarkDotNet.Artifacts/results
+    - name: 'Save previous benchmark reports'
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ github.workspace }}/${{ env.DIR_OUTPUT_BENCHMARK_REPORTS }}
+        key: ${{ env.CACHE_KEY }}
 
+    - name: "Upload compare benchmark report"
+      if: steps.check_previous_reports.outputs.previous-benchmark-reports-exists == 'true'
+      uses: actions/upload-artifact@v4.6.2
+      with:
+        name: 'TestResults'
+        path: ${{ github.workspace }}/${{ env.DIR_OUTPUT_COMPARE_REPORT }}/*
+        if-no-files-found: error
 
-    # - name: 'List previous benchmark reports'
-    #   if: always()
-    #   run: |
-    #     pwd
-    #     ls -la ${{ github.workspace }}/previous-benchmark-reports
+    - name: "Add compare benchmark report in PR Comment"
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request' && steps.check_previous_reports.outputs.previous-benchmark-reports-exists == 'true'
+      with:
+        header: compare-benchmark-report
+        hide_and_recreate: true
+        hide_classify: "OUTDATED"
+        path: ${{ github.workspace }}/${{ env.DIR_OUTPUT_COMPARE_REPORT }}/benchmark-comparison-report.md
+
+    - name: "Publish benchmark report in Summary"
+      if: steps.check_previous_reports.outputs.previous-benchmark-reports-exists == 'true'
+      run: cat ${{ github.workspace }}/${{ env.DIR_OUTPUT_COMPARE_REPORT }}/benchmark-comparison-report.md > $GITHUB_STEP_SUMMARY

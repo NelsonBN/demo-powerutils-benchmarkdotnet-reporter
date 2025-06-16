@@ -45,6 +45,13 @@ jobs:
     - name: 'Build projects'
       run: dotnet build -c Release --no-restore ${{ github.workspace }}/${{ env.PATH_BENCHMARK_PROJECT }}
 
+    - name: 'List previous benchmark reports'
+      run: |
+        echo '------------------'
+        echo "Listing previous benchmark reports:"
+        ls -la ${{ github.workspace }}/${{ env.DIR_PREVIOUS_BENCHMARK_REPORTS }}
+        echo '------------------'
+
     - name: 'Check if exists previous benchmark reports'
       id: check_previous_reports
       run: |
@@ -55,13 +62,6 @@ jobs:
           echo "No previous benchmark reports found."
           echo "previous-benchmark-reports-exists=false" >> $GITHUB_OUTPUT
         fi
-
-    - name: 'List previous benchmark reports'
-      run: |
-        echo '------------------'
-        echo "Listing previous benchmark reports:"
-        ls -la ${{ github.workspace }}/${{ env.DIR_PREVIOUS_BENCHMARK_REPORTS }}
-        echo '------------------'
 
     - name: 'Run benchmarks'
       run: dotnet run -p ${{ github.workspace }}/${{ env.PATH_BENCHMARK_PROJECT }} -c Release

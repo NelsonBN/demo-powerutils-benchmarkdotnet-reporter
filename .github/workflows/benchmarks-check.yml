@@ -4,7 +4,10 @@ name: 'Benchmarks Check'
 on:
   workflow_dispatch:
 
-  push:
+  pull_request:
+    types: [opened, reopened, edited, synchronize]
+    branches:
+      - main
 
 
 env:
@@ -19,6 +22,8 @@ jobs:
   benchmarks-check:
     name: 'Benchmarks Check'
     runs-on: 'ubuntu-latest'
+    permissions:
+      pull-requests: write
 
     steps:
     - name: "Checkout"
@@ -49,57 +54,18 @@ jobs:
     - name: 'Build projects'
       run: dotnet build -c Release --no-restore ${{ github.workspace }}/${{ env.PATH_BENCHMARKS_PROJECT }}
 
-    - name: 'List baseline benchmark reports'
-      run: |
-        echo '------------------'
-        pwd
-        echo "Listing baseline benchmark reports:"
-        ls -la ${{ github.workspace }}
-        echo '------------------'
-        ls -la ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
-        echo '------------------'
-
     - name: 'Run benchmarks'
       run: dotnet run -p ${{ github.workspace }}/${{ env.PATH_BENCHMARKS_PROJECT }} -c Release
-
-    - name: 'List current folder'
-      run: |
-        echo '------------------'
-        pwd
-        echo "Listing current folder:"
-        ls -la ${{ github.workspace }}
-        echo '------------------'
-        echo "Listing inside benchmark reports folder:"
-        ls -la ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }}
-        echo '------------------'
 
     - name: 'Run benchmarks compare'
       if: steps.cache.outputs.cache-matched-key != ''
       run: dotnet pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} -f console -f markdown -f json
 
-
-
-
-
-
-
-
-
-
     - name: 'Move target reports to baseline'
       run: |
-        echo '------------------'
         echo "Moving target reports to baseline reports"
-        ls -la ${{ github.workspace }}
-        echo '------------------'
         rm -rf ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
-        ls -la ${{ github.workspace }}
-        echo '------------------'
         mv ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
-        ls -la ${{ github.workspace }}
-        echo '------------------'
-        ls -la ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
-        echo '------------------'
 
     - name: 'Save current benchmark reports for next run'
       uses: actions/cache/save@v4

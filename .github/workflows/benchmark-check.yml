@@ -1,6 +1,5 @@
 name: 'Benchmark Check'
 
-
 on:
   workflow_dispatch:
     inputs:
@@ -12,19 +11,24 @@ on:
   push:
 
 
+env:
+  MY_ENV_VAR: 'my-env-var-1'
+  CACHE_KEY: 'my-cache-key-1'
+
+
 jobs:
   benchmark-check:
     name: 'Benchmark Check'
     runs-on: 'ubuntu-latest'
 
     steps:
-    - name: "Cache file 1"
+    - name: 'Cache file'
       uses: actions/cache/restore@v4
       with:
         path: ${{ github.workspace }}/test1
-        key: my-cache-key-1
+        key: ${{ env.CACHE_KEY }}
 
-    - name: "Read file 1"
+    - name: 'Read file'
       run: |
         cd ${{ github.workspace }}/test1
         pwd
@@ -33,17 +37,17 @@ jobs:
 
 # ############################
 
-    - name: "Writer file 1"
+    - name: 'Writer file'
       run: |
         mkdir -p ${{ github.workspace }}/test1
         echo ${{ github.event.inputs.value1 }} > "${{ github.workspace }}/test1/file1.txt"
         pwd
         ls -la ${{ github.workspace }}/test1
-        cat "--->"
+        echo "--->"
         cat ${{ github.workspace }}/test1/file1.txt
 
-    - name: "Cache file 1"
+    - name: 'Cache file'
       uses: actions/cache/save@v4
       with:
         path: ${{ github.workspace }}/test1
-        key: my-cache-key-1-${{ github.run_number }}
+        key: ${{ env.CACHE_KEY }}-${{ github.run_number }}

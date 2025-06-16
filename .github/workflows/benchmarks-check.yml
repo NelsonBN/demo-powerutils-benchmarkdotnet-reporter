@@ -56,6 +56,7 @@ jobs:
         echo "Listing baseline benchmark reports:"
         ls -la ${{ github.workspace }}
         echo '------------------'
+        ls -la ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
         echo '------------------'
 
     - name: 'Run benchmarks'

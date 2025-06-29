@@ -93,6 +93,10 @@ jobs:
         path: ${{ github.workspace }}/${{ env.DIR_COMPARE_REPORTS }}/*
         if-no-files-found: error
 
+    - name: 'Publish benchmark report in Summary'
+      if: steps.cache.outputs.cache-matched-key != '' && always()
+      run: cat ${{ github.workspace }}/${{ env.DIR_COMPARE_REPORTS }}/benchmark-comparison-report.md > $GITHUB_STEP_SUMMARY
+
     - name: 'Add compare benchmark report in PR Comment'
       uses: marocchino/sticky-pull-request-comment@v2
       if: github.event_name == 'pull_request' && steps.cache.outputs.cache-matched-key != '' && always()
@@ -101,7 +105,3 @@ jobs:
         hide_and_recreate: true
         hide_classify: "OUTDATED"
         path: ${{ github.workspace }}/${{ env.DIR_COMPARE_REPORTS }}/benchmark-comparison-report.md
-
-    - name: 'Publish benchmark report in Summary'
-      if: steps.cache.outputs.cache-matched-key != '' && always()
-      run: cat ${{ github.workspace }}/${{ env.DIR_COMPARE_REPORTS }}/benchmark-comparison-report.md > $GITHUB_STEP_SUMMARY

@@ -1,4 +1,4 @@
-name: 'Benchmarks Check'
+name: 'Benchmarks Check - Full Example'
 
 
 on:
@@ -15,21 +15,21 @@ env:
   DIR_BASELINE_REPORTS: 'baseline-benchmarks-reports'
   DIR_TARGET_REPORTS: 'BenchmarkDotNet.Artifacts/results'
   DIR_COMPARE_REPORTS: 'BenchmarkReporter'
-  CACHE_KEY: 'baseline-benchmarks-reports'
+  CACHE_KEY: 'baseline-benchmarks-reports-full-example'
 
 
 jobs:
-  benchmarks-check:
-    name: 'Benchmarks Check'
+  benchmarks-check-full-example:
+    name: 'Benchmarks Check - Full Example'
     runs-on: 'ubuntu-latest'
     permissions:
       pull-requests: write
 
     steps:
-    - name: "Checkout"
+    - name: 'Checkout'
       uses: actions/checkout@v4.2.2
 
-    - name: "Setup .NET"
+    - name: 'Setup .NET'
       uses: actions/setup-dotnet@v4.3.1
       with:
         dotnet-version: '9.x.x'
@@ -45,9 +45,7 @@ jobs:
       run: |
         echo "Cache restored: ${{ steps.cache.outputs.cache-matched-key != '' }}"
 
-    # - name: 'Restore .NET Tools'
-    #   run: dotnet tool restore
-    - name: 'Install BenchmarkDotNet Reporter'
+    - name: 'Install PowerUtils.BenchmarkDotnet.Reporter'
       run: dotnet tool install --global PowerUtils.BenchmarkDotnet.Reporter
 
     - name: 'Restore dependencies'
@@ -61,8 +59,7 @@ jobs:
 
     - name: 'Run benchmarks compare'
       if: steps.cache.outputs.cache-matched-key != ''
-      #run: dotnet pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} -f console -f markdown -f json
-      run: pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} -f console -f markdown -f json
+      run: pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} -f console -f markdown -f json -tm 5% -ta 5% -ft -fw
 
     - name: 'Move target reports to baseline'
       run: |

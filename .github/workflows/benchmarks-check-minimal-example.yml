@@ -1,0 +1,67 @@
+name: 'Benchmarks Check - Minimal Example'
+
+
+on:
+  workflow_dispatch:
+
+  pull_request:
+    types: [opened, reopened, edited, synchronize]
+    branches:
+      - main
+
+
+env:
+  PATH_BENCHMARKS_PROJECT: 'tests/Demo.Benchmarks/Demo.Benchmarks.csproj'
+  DIR_BASELINE_REPORTS: 'baseline-benchmarks-reports'
+  DIR_TARGET_REPORTS: 'BenchmarkDotNet.Artifacts/results'
+  CACHE_KEY: 'baseline-benchmarks-reports-minimal-example'
+
+
+jobs:
+  benchmarks-check-minimal-example:
+    name: 'Benchmarks Check - Minimal Example'
+    runs-on: 'ubuntu-latest'
+
+    steps:
+    - name: 'Checkout'
+      uses: actions/checkout@v4.2.2
+
+    - name: 'Setup .NET'
+      uses: actions/setup-dotnet@v4.3.1
+      with:
+        dotnet-version: '9.x.x'
+
+    - name: 'Restore Baseline benchmark reports'
+      uses: actions/cache/restore@v4
+      id: cache
+      with:
+        path: ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
+        key: ${{ env.CACHE_KEY }}
+
+    - name: 'Install PowerUtils.BenchmarkDotnet.Reporter'
+      run: dotnet tool install --global PowerUtils.BenchmarkDotnet.Reporter
+
+    - name: 'Restore dependencies'
+      run: dotnet restore
+
+    - name: 'Build projects'
+      run: dotnet build -c Release --no-restore ${{ github.workspace }}/${{ env.PATH_BENCHMARKS_PROJECT }}
+
+    - name: 'Run benchmarks'
+      run: dotnet run -p ${{ github.workspace }}/${{ env.PATH_BENCHMARKS_PROJECT }} -c Release
+
+    - name: 'Run benchmarks compare'
+      if: steps.cache.outputs.cache-matched-key != ''
+      run: pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} -f console -tm 5% -ta 5% -ft -fw
+
+    - name: 'Move target reports to baseline'
+      run: |
+        echo "Moving target reports to baseline reports"
+        rm -rf ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
+        mv ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
+
+    - name: 'Save current benchmark reports for next run'
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
+        key: ${{ env.CACHE_KEY }}-${{ github.run_number }}

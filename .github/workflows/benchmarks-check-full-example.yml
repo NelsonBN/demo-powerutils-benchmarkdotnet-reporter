@@ -1,4 +1,4 @@
-name: 'Benchmarks Check'
+name: 'Benchmarks Check - Full Example'
 
 
 on:
@@ -7,7 +7,7 @@ on:
   pull_request:
     types: [opened, reopened, edited, synchronize]
     branches:
-      - main
+    - main
 
 
 env:
@@ -15,21 +15,24 @@ env:
   DIR_BASELINE_REPORTS: 'baseline-benchmarks-reports'
   DIR_TARGET_REPORTS: 'BenchmarkDotNet.Artifacts/results'
   DIR_COMPARE_REPORTS: 'BenchmarkReporter'
-  CACHE_KEY: 'baseline-benchmarks-reports'
+  CACHE_KEY: 'baseline-benchmarks-reports-full-example'
+  THRESHOLD_MEAN: 5%
+  THRESHOLD_ALLOCATION: 5%
+
 
 
 jobs:
-  benchmarks-check:
-    name: 'Benchmarks Check'
+  benchmarks-check-full-example:
+    name: 'Benchmarks Check - Full Example'
     runs-on: 'ubuntu-latest'
     permissions:
       pull-requests: write
 
     steps:
-    - name: "Checkout"
+    - name: 'Checkout'
       uses: actions/checkout@v4.2.2
 
-    - name: "Setup .NET"
+    - name: 'Setup .NET'
       uses: actions/setup-dotnet@v4.3.1
       with:
         dotnet-version: '9.x.x'
@@ -45,8 +48,9 @@ jobs:
       run: |
         echo "Cache restored: ${{ steps.cache.outputs.cache-matched-key != '' }}"
 
-    - name: 'Restore .NET Tools'
-      run: dotnet tool restore
+    - name: 'Install PowerUtils.BenchmarkDotnet.Reporter'
+      if: steps.cache.outputs.cache-matched-key != ''
+      run: dotnet tool install --global PowerUtils.BenchmarkDotnet.Reporter
 
     - name: 'Restore dependencies'
       run: dotnet restore
@@ -59,7 +63,7 @@ jobs:
 
     - name: 'Run benchmarks compare'
       if: steps.cache.outputs.cache-matched-key != ''
-      run: dotnet pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} -f console -f markdown -f json
+      run: pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} -f console -f markdown -f json -tm ${{ env.THRESHOLD_MEAN }} -ta ${{ env.THRESHOLD_ALLOCATION }} -ft -fw
 
     - name: 'Move target reports to baseline'
       run: |
@@ -73,30 +77,31 @@ jobs:
         path: ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
         key: ${{ env.CACHE_KEY }}-${{ github.run_number }}
 
-    - name: "Upload new benchmark reports"
+    - name: 'Upload benchmark reports'
       uses: actions/upload-artifact@v4.6.2
+      if: always()
       with:
         name: 'benchmark-reports'
         path: ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}/*
         if-no-files-found: error
 
-    - name: "Upload compare benchmark report"
-      if: steps.cache.outputs.cache-matched-key != ''
+    - name: 'Upload compare benchmark report'
       uses: actions/upload-artifact@v4.6.2
+      if: steps.cache.outputs.cache-matched-key != '' && always()
       with:
         name: 'benchmark-comparison-reports'
         path: ${{ github.workspace }}/${{ env.DIR_COMPARE_REPORTS }}/*
         if-no-files-found: error
 
-    - name: "Add compare benchmark report in PR Comment"
+    - name: 'Publish benchmark report in Summary'
+      if: steps.cache.outputs.cache-matched-key != '' && always()
+      run: cat ${{ github.workspace }}/${{ env.DIR_COMPARE_REPORTS }}/benchmark-comparison-report.md > $GITHUB_STEP_SUMMARY
+
+    - name: 'Add compare benchmark report in PR Comment'
       uses: marocchino/sticky-pull-request-comment@v2
-      if: github.event_name == 'pull_request' && steps.cache.outputs.cache-matched-key != ''
+      if: github.event_name == 'pull_request' && steps.cache.outputs.cache-matched-key != '' && always()
       with:
         header: compare-benchmark-report
         hide_and_recreate: true
         hide_classify: "OUTDATED"
         path: ${{ github.workspace }}/${{ env.DIR_COMPARE_REPORTS }}/benchmark-comparison-report.md
-
-    - name: "Publish benchmark report in Summary"
-      if: steps.cache.outputs.cache-matched-key != ''
-      run: cat ${{ github.workspace }}/${{ env.DIR_COMPARE_REPORTS }}/benchmark-comparison-report.md > $GITHUB_STEP_SUMMARY

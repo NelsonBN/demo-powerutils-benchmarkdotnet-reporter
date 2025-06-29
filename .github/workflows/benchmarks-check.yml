@@ -61,7 +61,8 @@ jobs:
 
     - name: 'Run benchmarks compare'
       if: steps.cache.outputs.cache-matched-key != ''
-      run: dotnet pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} -f console -f markdown -f json
+      #run: dotnet pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} -f console -f markdown -f json
+      run: pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} -f console -f markdown -f json
 
     - name: 'Move target reports to baseline'
       run: |

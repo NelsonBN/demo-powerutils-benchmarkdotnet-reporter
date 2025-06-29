@@ -77,30 +77,31 @@ jobs:
         path: ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
         key: ${{ env.CACHE_KEY }}-${{ github.run_number }}
 
-    - name: "Upload new benchmark reports"
+    - name: 'Upload benchmark reports'
       uses: actions/upload-artifact@v4.6.2
+      if: always()
       with:
         name: 'benchmark-reports'
         path: ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}/*
         if-no-files-found: error
 
-    - name: "Upload compare benchmark report"
-      if: steps.cache.outputs.cache-matched-key != ''
+    - name: 'Upload compare benchmark report'
       uses: actions/upload-artifact@v4.6.2
+      if: steps.cache.outputs.cache-matched-key != '' && always()
       with:
         name: 'benchmark-comparison-reports'
         path: ${{ github.workspace }}/${{ env.DIR_COMPARE_REPORTS }}/*
         if-no-files-found: error
 
-    - name: "Add compare benchmark report in PR Comment"
+    - name: 'Add compare benchmark report in PR Comment'
       uses: marocchino/sticky-pull-request-comment@v2
-      if: github.event_name == 'pull_request' && steps.cache.outputs.cache-matched-key != ''
+      if: github.event_name == 'pull_request' && steps.cache.outputs.cache-matched-key != '' && always()
       with:
         header: compare-benchmark-report
         hide_and_recreate: true
         hide_classify: "OUTDATED"
         path: ${{ github.workspace }}/${{ env.DIR_COMPARE_REPORTS }}/benchmark-comparison-report.md
 
-    - name: "Publish benchmark report in Summary"
-      if: steps.cache.outputs.cache-matched-key != ''
+    - name: 'Publish benchmark report in Summary'
+      if: steps.cache.outputs.cache-matched-key != '' && always()
       run: cat ${{ github.workspace }}/${{ env.DIR_COMPARE_REPORTS }}/benchmark-comparison-report.md > $GITHUB_STEP_SUMMARY

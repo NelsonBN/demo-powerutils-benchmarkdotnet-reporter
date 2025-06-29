@@ -49,6 +49,7 @@ jobs:
         echo "Cache restored: ${{ steps.cache.outputs.cache-matched-key != '' }}"
 
     - name: 'Install PowerUtils.BenchmarkDotnet.Reporter'
+      if: steps.cache.outputs.cache-matched-key != ''
       run: dotnet tool install --global PowerUtils.BenchmarkDotnet.Reporter
 
     - name: 'Restore dependencies'

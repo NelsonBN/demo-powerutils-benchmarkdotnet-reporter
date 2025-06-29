@@ -15,6 +15,8 @@ env:
   DIR_BASELINE_REPORTS: 'baseline-benchmarks-reports'
   DIR_TARGET_REPORTS: 'BenchmarkDotNet.Artifacts/results'
   CACHE_KEY: 'baseline-benchmarks-reports-minimal-example'
+  THRESHOLD_MEAN: 5%
+  THRESHOLD_ALLOCATION: 5%
 
 
 jobs:
@@ -52,7 +54,7 @@ jobs:
 
     - name: 'Run benchmarks compare'
       if: steps.cache.outputs.cache-matched-key != ''
-      run: pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} -f console -tm 5% -ta 5% -ft -fw
+      run: pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} -f console -tm ${{ env.THRESHOLD_MEAN }} -ta ${{ env.THRESHOLD_ALLOCATION }} -ft -fw
 
     - name: 'Move target reports to baseline'
       run: |

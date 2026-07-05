@@ -34,7 +34,7 @@ jobs:
         dotnet-version: '10.x.x'
 
     - name: 'Restore Baseline benchmark reports'
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v6
       id: cache
       with:
         path: ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
@@ -60,7 +60,7 @@ jobs:
         mv ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
 
     - name: 'Save current benchmark reports for next run'
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v6
       with:
         path: ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
         key: ${{ env.CACHE_KEY }}-${{ github.run_number }}

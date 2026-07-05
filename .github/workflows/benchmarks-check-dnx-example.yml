@@ -1,4 +1,4 @@
-name: 'Benchmarks Check - Minimal Example'
+name: 'Benchmarks Check - .NET dnx Example'
 
 
 on:
@@ -14,14 +14,14 @@ env:
   PATH_BENCHMARKS_PROJECT: 'tests/Demo.Benchmarks/Demo.Benchmarks.csproj'
   DIR_BASELINE_REPORTS: 'baseline-benchmarks-reports'
   DIR_TARGET_REPORTS: 'BenchmarkDotNet.Artifacts/results'
-  CACHE_KEY: 'baseline-benchmarks-reports-minimal-example'
+  CACHE_KEY: 'baseline-benchmarks-reports-dnx-example'
   THRESHOLD_MEAN: 5%
   THRESHOLD_ALLOCATION: 5%
 
 
 jobs:
-  benchmarks-check-minimal-example:
-    name: 'Benchmarks Check - Minimal Example'
+  benchmarks-check-dnx-example:
+    name: 'Benchmarks Check - .NET dnx Example'
     runs-on: 'ubuntu-latest'
 
     steps:
@@ -40,10 +40,6 @@ jobs:
         path: ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
         key: ${{ env.CACHE_KEY }}
 
-    - name: 'Install PowerUtils.BenchmarkDotnet.Reporter'
-      if: steps.cache.outputs.cache-matched-key != ''
-      run: dotnet tool install --global PowerUtils.BenchmarkDotnet.Reporter
-
     - name: 'Restore dependencies'
       run: dotnet restore
 
@@ -55,7 +51,7 @@ jobs:
 
     - name: 'Run benchmarks compare'
       if: steps.cache.outputs.cache-matched-key != ''
-      run: pbreporter compare -b ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} -f console -tm ${{ env.THRESHOLD_MEAN }} -ta ${{ env.THRESHOLD_ALLOCATION }} -ft -fw
+      run: dnx PowerUtils.BenchmarkDotnet.Reporter compare -b ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }} -t ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} -f console -tm ${{ env.THRESHOLD_MEAN }} -ta ${{ env.THRESHOLD_ALLOCATION }} -ft -fw
 
     - name: 'Move target reports to baseline'
       run: |

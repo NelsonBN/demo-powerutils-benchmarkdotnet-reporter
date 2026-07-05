@@ -38,7 +38,7 @@ jobs:
         dotnet-version: '10.x.x'
 
     - name: 'Restore Baseline benchmark reports'
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v6
       id: cache
       with:
         path: ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
@@ -72,7 +72,7 @@ jobs:
         mv ${{ github.workspace }}/${{ env.DIR_TARGET_REPORTS }} ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
 
     - name: 'Save current benchmark reports for next run'
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v6
       with:
         path: ${{ github.workspace }}/${{ env.DIR_BASELINE_REPORTS }}
         key: ${{ env.CACHE_KEY }}-${{ github.run_number }}
@@ -98,7 +98,7 @@ jobs:
       run: cat ${{ github.workspace }}/${{ env.DIR_COMPARE_REPORTS }}/benchmark-comparison-report.md > $GITHUB_STEP_SUMMARY
 
     - name: 'Add compare benchmark report in PR Comment'
-      uses: marocchino/sticky-pull-request-comment@v2
+      uses: marocchino/sticky-pull-request-comment@v3
       if: github.event_name == 'pull_request' && steps.cache.outputs.cache-matched-key != '' && always()
       with:
         header: compare-benchmark-report

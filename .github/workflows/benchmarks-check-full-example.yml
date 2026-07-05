@@ -30,12 +30,12 @@ jobs:
 
     steps:
     - name: 'Checkout'
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v7.0.0
 
     - name: 'Setup .NET'
-      uses: actions/setup-dotnet@v4.3.1
+      uses: actions/setup-dotnet@v5.4.0
       with:
-        dotnet-version: '9.x.x'
+        dotnet-version: '10.x.x'
 
     - name: 'Restore Baseline benchmark reports'
       uses: actions/cache/restore@v4
@@ -59,7 +59,7 @@ jobs:
       run: dotnet build -c Release --no-restore ${{ github.workspace }}/${{ env.PATH_BENCHMARKS_PROJECT }}
 
     - name: 'Run benchmarks'
-      run: dotnet run -p ${{ github.workspace }}/${{ env.PATH_BENCHMARKS_PROJECT }} -c Release
+      run: dotnet run --project ${{ github.workspace }}/${{ env.PATH_BENCHMARKS_PROJECT }} -c Release
 
     - name: 'Run benchmarks compare'
       if: steps.cache.outputs.cache-matched-key != ''
@@ -78,7 +78,7 @@ jobs:
         key: ${{ env.CACHE_KEY }}-${{ github.run_number }}
 
     - name: 'Upload benchmark reports'
-      uses: actions/upload-artifact@v4.6.2
+      uses: actions/upload-artifact@v7.0.1
       if: always()
       with:
         name: 'benchmark-reports'
@@ -86,7 +86,7 @@ jobs:
         if-no-files-found: error
 
     - name: 'Upload compare benchmark report'
-      uses: actions/upload-artifact@v4.6.2
+      uses: actions/upload-artifact@v7.0.1
       if: steps.cache.outputs.cache-matched-key != '' && always()
       with:
         name: 'benchmark-comparison-reports'
